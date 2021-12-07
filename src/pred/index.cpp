@@ -9,8 +9,15 @@ using namespace tdc::pred;
 
 Index::Index(const uint64_t* keys, const size_t num, const size_t lo_bits) : m_lo_bits(lo_bits) {
     assert_sorted_ascending(keys, num);
-
     // build an index for high bits
+    if(num == 0) {
+        m_lo_bits = 0;
+        m_min = UINT64_MAX;
+        m_max = 0;
+        m_key_min = UINT64_MAX;
+        m_key_max = 0;
+        return;
+    }
     m_min = keys[0];
     m_max = keys[num-1];
     m_key_min = hi(m_min);
@@ -21,7 +28,7 @@ Index::Index(const uint64_t* keys, const size_t num, const size_t lo_bits) : m_l
     // std::cout << " -> allocating " << (m_key_max - m_key_min + 2)
         // << " samples with bit width " << math::ilog2_ceil(num-1) << std::endl;
 
-    m_hi_idx = vec::IntVector(m_key_max - m_key_min + 2, math::ilog2_ceil(num-1), false);
+    m_hi_idx = vec::IntVector(m_key_max - m_key_min + 2, std::max(size_t{1}, math::ilog2_ceil(num-1)), false);
     m_hi_idx[0] = 0; // left border of the first interval is the first entry
     assert(m_hi_idx[0] == 0);
     
